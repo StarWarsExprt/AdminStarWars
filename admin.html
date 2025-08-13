@@ -8,14 +8,36 @@
       font-family: 'Orbitron', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       max-width: 700px;
       margin: 30px auto;
-      background: radial-gradient(ellipse at center, #000 0%, #050010 80%);
+      background: url('https://i.imgur.com/6N8bHZQ.jpg') no-repeat center center fixed;
+      background-size: cover;
       color: #feda4a; /* Star Wars gold */
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 0 25px #feda4a;
-      background-image: url('https://i.imgur.com/8Rj7R8W.png'); /* subtle starfield */
-      background-repeat: repeat;
-      background-size: contain;
+      position: relative;
+      z-index: 1;
+    }
+    /* overlay to darken background for text readability */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 0;
+    }
+    h1 {
+      text-align: center;
+      color: #feda4a;
+      margin-bottom: 30px;
+      font-weight: 900;
+      font-size: 3rem;
+      text-shadow: 0 0 20px #feda4a, 0 0 40px #feda4a;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-family: 'Orbitron', sans-serif;
+      position: relative;
+      z-index: 1;
+      margin: 0 0 20px 0;
     }
     #questions {
       max-height: 500px;
@@ -24,6 +46,8 @@
       padding: 15px;
       border-radius: 8px;
       background: rgba(0, 0, 50, 0.7);
+      position: relative;
+      z-index: 1;
     }
     .question-item {
       background: rgba(255, 255, 255, 0.05);
@@ -33,6 +57,8 @@
       box-shadow: 0 0 10px #feda4a;
       border: 1px solid #feda4a;
       animation: flicker 3s infinite;
+      position: relative;
+      z-index: 1;
     }
     .question-text {
       font-weight: 700;
@@ -79,18 +105,7 @@
 </head>
 <body>
 
-  <div style="text-align:center; margin-bottom: 15px;">
-    <h1 style="
-      font-family: 'Orbitron', sans-serif;
-      color: #feda4a;
-      font-weight: 900;
-      font-size: 3rem;
-      text-shadow: 0 0 20px #feda4a, 0 0 40px #feda4a;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      margin: 0;
-    ">Star Wars Admin Panel</h1>
-  </div>
+  <h1>Star Wars Admin Panel</h1>
 
   <div id="questions"></div>
 
@@ -115,40 +130,4 @@
 
     const questionsDiv = document.getElementById('questions');
 
-    function renderQnA(snapshot) {
-      questionsDiv.innerHTML = '';
-      const qna = snapshot.val();
-      if (!qna) return;
-      Object.entries(qna).forEach(([key, item]) => {
-        const container = document.createElement('div');
-        container.classList.add('question-item');
-
-        const qText = document.createElement('div');
-        qText.classList.add('question-text');
-        qText.textContent = 'Q: ' + item.question;
-        container.appendChild(qText);
-
-        const replyBox = document.createElement('textarea');
-        replyBox.placeholder = 'Type reply here...';
-        replyBox.value = item.reply || '';
-        container.appendChild(replyBox);
-
-        const saveBtn = document.createElement('button');
-        saveBtn.textContent = 'Save Reply';
-        saveBtn.classList.add('saveBtn');
-        saveBtn.onclick = () => {
-          const newReply = replyBox.value.trim();
-          db.ref('starwarsQnA/' + key).update({ reply: newReply });
-          alert('Reply saved!');
-        };
-        container.appendChild(saveBtn);
-
-        questionsDiv.appendChild(container);
-      });
-    }
-
-    db.ref('starwarsQnA').on('value', renderQnA);
-  </script>
-
-</body>
-</html>
+    function renderQnA(snapshot)
