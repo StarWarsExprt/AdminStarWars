@@ -8,22 +8,21 @@
       font-family: 'Orbitron', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       max-width: 700px;
       margin: 30px auto;
-      background: url('https://i.imgur.com/6N8bHZQ.jpg') no-repeat center center fixed;
-      background-size: cover;
+      background-color: #000010;
+      background-image:
+        radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+        radial-gradient(1.5px 1.5px at 50px 70px, #ccc, transparent),
+        radial-gradient(2px 2px at 120px 120px, #eee, transparent),
+        radial-gradient(1.2px 1.2px at 250px 200px, #fff, transparent),
+        radial-gradient(1.8px 1.8px at 350px 50px, #ddd, transparent),
+        radial-gradient(1.6px 1.6px at 400px 300px, #fff, transparent);
+      background-repeat: repeat;
       color: #feda4a; /* Star Wars gold */
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 0 25px #feda4a;
       position: relative;
-      z-index: 1;
-    }
-    /* overlay to darken background for text readability */
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.7);
-      z-index: 0;
+      overflow: hidden;
     }
     h1 {
       text-align: center;
@@ -35,8 +34,6 @@
       letter-spacing: 0.2em;
       text-transform: uppercase;
       font-family: 'Orbitron', sans-serif;
-      position: relative;
-      z-index: 1;
       margin: 0 0 20px 0;
     }
     #questions {
@@ -46,8 +43,6 @@
       padding: 15px;
       border-radius: 8px;
       background: rgba(0, 0, 50, 0.7);
-      position: relative;
-      z-index: 1;
     }
     .question-item {
       background: rgba(255, 255, 255, 0.05);
@@ -57,8 +52,6 @@
       box-shadow: 0 0 10px #feda4a;
       border: 1px solid #feda4a;
       animation: flicker 3s infinite;
-      position: relative;
-      z-index: 1;
     }
     .question-text {
       font-weight: 700;
@@ -130,4 +123,40 @@
 
     const questionsDiv = document.getElementById('questions');
 
-    function renderQnA(snapshot)
+    function renderQnA(snapshot) {
+      questionsDiv.innerHTML = '';
+      const qna = snapshot.val();
+      if (!qna) return;
+      Object.entries(qna).forEach(([key, item]) => {
+        const container = document.createElement('div');
+        container.classList.add('question-item');
+
+        const qText = document.createElement('div');
+        qText.classList.add('question-text');
+        qText.textContent = 'Q: ' + item.question;
+        container.appendChild(qText);
+
+        const replyBox = document.createElement('textarea');
+        replyBox.placeholder = 'Type reply here...';
+        replyBox.value = item.reply || '';
+        container.appendChild(replyBox);
+
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = 'Save Reply';
+        saveBtn.classList.add('saveBtn');
+        saveBtn.onclick = () => {
+          const newReply = replyBox.value.trim();
+          db.ref('starwarsQnA/' + key).update({ reply: newReply });
+          alert('Reply saved!');
+        };
+        container.appendChild(saveBtn);
+
+        questionsDiv.appendChild(container);
+      });
+    }
+
+    db.ref('starwarsQnA').on('value', renderQnA);
+  </script>
+
+</body>
+</html>
