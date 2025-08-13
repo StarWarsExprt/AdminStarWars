@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Star Wars Q&A</title>
+  <title>Star Wars Admin Panel</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
   <style>
     body {
@@ -17,33 +17,21 @@
       background-repeat: repeat;
       background-size: contain;
     }
-    h1 {
-      text-align: center;
-      color: #00bfff;
-      margin-bottom: 30px;
-      font-weight: 900;
-      font-size: 3rem;
-      text-shadow: 0 0 20px #00bfff, 0 0 40px #00bfff;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      font-family: 'Orbitron', sans-serif;
-    }
     #questions {
-      margin-bottom: 20px;
       max-height: 500px;
       overflow-y: auto;
-      border: 2px solid #00bfff;
+      border: 2px solid #feda4a;
       padding: 15px;
       border-radius: 8px;
       background: rgba(0, 0, 50, 0.7);
     }
     .question-item {
       background: rgba(255, 255, 255, 0.05);
-      padding: 10px 15px;
+      padding: 12px 15px;
       border-radius: 6px;
       margin-bottom: 12px;
-      box-shadow: 0 0 5px #00bfff;
-      border: 1px solid #00bfff;
+      box-shadow: 0 0 10px #feda4a;
+      border: 1px solid #feda4a;
       animation: flicker 3s infinite;
     }
     .question-text {
@@ -51,32 +39,24 @@
       color: #feda4a;
       text-shadow: 0 0 10px #feda4a;
     }
-    .reply-text {
-      margin-top: 6px;
-      padding-left: 10px;
-      color: #00ffff;
-      font-style: italic;
-      text-shadow: 0 0 5px #00ffff;
-    }
-    #askForm {
-      display: flex;
-      gap: 10px;
-    }
-    #askInput {
-      flex-grow: 1;
-      padding: 10px;
-      font-size: 16px;
+    textarea {
+      width: 100%;
+      margin-top: 8px;
       border-radius: 6px;
       border: none;
-      outline: none;
+      padding: 10px;
+      resize: vertical;
+      font-size: 14px;
+      font-family: inherit;
       background: #222;
       color: #feda4a;
       box-shadow: 0 0 5px #feda4a inset;
     }
-    #askBtn {
+    button.saveBtn {
+      margin-top: 6px;
       background-color: #feda4a;
       border: none;
-      padding: 10px 20px;
+      padding: 8px 18px;
       color: #000;
       font-weight: 900;
       border-radius: 6px;
@@ -84,7 +64,7 @@
       transition: background-color 0.3s;
       box-shadow: 0 0 10px #feda4a;
     }
-    #askBtn:hover {
+    button.saveBtn:hover {
       background-color: #ffeb7a;
     }
     @keyframes flicker {
@@ -100,17 +80,19 @@
 <body>
 
   <div style="text-align:center; margin-bottom: 15px;">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6c/Star_Wars_Logo.svg" alt="Star Wars" style="width:250px; filter: drop-shadow(0 0 5px #feda4a);" />
+    <h1 style="
+      font-family: 'Orbitron', sans-serif;
+      color: #feda4a;
+      font-weight: 900;
+      font-size: 3rem;
+      text-shadow: 0 0 20px #feda4a, 0 0 40px #feda4a;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin: 0;
+    ">Star Wars Admin Panel</h1>
   </div>
 
-  <h1>Star Wars Q&amp;A</h1>
-
   <div id="questions"></div>
-
-  <form id="askForm">
-    <input type="text" id="askInput" placeholder="Ask a Star Wars question..." autocomplete="off" required />
-    <button type="submit" id="askBtn">Ask</button>
-  </form>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -132,51 +114,41 @@
     const db = firebase.database();
 
     const questionsDiv = document.getElementById('questions');
-    const askForm = document.getElementById('askForm');
-    const askInput = document.getElementById('askInput');
 
     function renderQnA(snapshot) {
       questionsDiv.innerHTML = '';
       const qna = snapshot.val();
       if (!qna) return;
       Object.entries(qna).forEach(([key, item]) => {
-        const qDiv = document.createElement('div');
-        qDiv.classList.add('question-item');
+        const container = document.createElement('div');
+        container.classList.add('question-item');
 
         const qText = document.createElement('div');
         qText.classList.add('question-text');
         qText.textContent = 'Q: ' + item.question;
-        qDiv.appendChild(qText);
+        container.appendChild(qText);
 
-        if (item.reply) {
-          const rText = document.createElement('div');
-          rText.classList.add('reply-text');
-          rText.textContent = 'Reply: ' + item.reply;
-          qDiv.appendChild(rText);
-        }
+        const replyBox = document.createElement('textarea');
+        replyBox.placeholder = 'Type reply here...';
+        replyBox.value = item.reply || '';
+        container.appendChild(replyBox);
 
-        questionsDiv.appendChild(qDiv);
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = 'Save Reply';
+        saveBtn.classList.add('saveBtn');
+        saveBtn.onclick = () => {
+          const newReply = replyBox.value.trim();
+          db.ref('starwarsQnA/' + key).update({ reply: newReply });
+          alert('Reply saved!');
+        };
+        container.appendChild(saveBtn);
+
+        questionsDiv.appendChild(container);
       });
-
-      if (questionsDiv.lastChild) {
-        questionsDiv.lastChild.scrollIntoView({behavior: "smooth"});
-      }
     }
 
     db.ref('starwarsQnA').on('value', renderQnA);
-
-    askForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const questionText = askInput.value.trim();
-      if (!questionText) return;
-
-      db.ref('starwarsQnA').push({
-        question: questionText,
-        reply: ""
-      });
-
-      askInput.value = '';
-    });
   </script>
+
 </body>
 </html>
